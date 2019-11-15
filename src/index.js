@@ -21,7 +21,6 @@ async function convertReplay(replayUuid) {
 	const gameInfo = new GameInfo();
 
 	let lastFrame = null; // The json of the last frame.
-	let fetchAttempts = 0;
 	for (let frameIndex = 1; frameIndex < lastFrameIndex; frameIndex++) {
 
 		const currentTime = timeInterval * frameIndex;
@@ -31,7 +30,7 @@ async function convertReplay(replayUuid) {
 		 // TODO: The api needs to tell us either what frames are there or what the last frame is.
 		 // Currently it can skip a frame if it's the same as the previous one
 		if (response.ok == false) {
-			debug.warn(`Could not find frame ${frameIndex} (time: ${currentTime}, response: ${response.status} ${response.statusText}, attempt: ${fetchAttempts})`);
+			debug.warn(`Could not find frame ${frameIndex} (time: ${currentTime}, response: ${response.status} ${response.statusText})`);
 
 			if (lastFrame == null) 
 				throw new Error('Unable to fetch last frame!');
