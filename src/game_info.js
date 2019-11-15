@@ -5,6 +5,8 @@ const CardSet = require("./card_set");
 const GameState = GameStateData.GameState;
 const GameStateNames = GameStateData.GameStateNames;
 
+const CreateNexus = require("./actions/create_nexus");
+
 const LocationType = Boardmapper.LocationType;
 const LocationTypeNames = Boardmapper.LocationTypeNames;
 const FieldOwner = Boardmapper.FieldOwner;
@@ -25,35 +27,35 @@ module.exports = class GameInfo {
 		this.allCards = new CardSet(null); // This will contain ALL known cards.
 	}
 
-	feedFrame(json) {
+	feedFrame(time, json) {
 
 		switch (this.gameState) {
 			case GameState.Init:
-				this._handleInitFrame(json);
+				this._handleInitFrame(time, json);
 				break;
 			case GameState.Draw:
-				this._handleDrawFrame(json);
+				this._handleDrawFrame(time, json);
 				break;
 		}
 	}
 
-	_handleInitFrame(json) {
+	_handleInitFrame(time, json) {
 
-		this._handleGenericEvents(json);
+		this._handleGenericEvents(time, json);
 
 		// First, check if we're still in init frame:
 		if (json.OpponentName != null && json.PlayerName != null) {
 			console.log(`This replay is a match between ${json.OpponentName} and ${json.PlayerName}.`);
-			this._setToNextGameState(json);
+			this._setToNextGameState(time, json);
 			return;
 		}
 
 		// Do init stuff here (which I don't have right now)
 	}
 
-	_handleDrawFrame(json) {
+	_handleDrawFrame(time, json) {
 
-		this._handleGenericEvents(json);
+		this._handleGenericEvents(time, json);
 
 		/*
 			When we're in draw, we get 4 cards in the middle, which you can replace for other cards.
@@ -61,13 +63,15 @@ module.exports = class GameInfo {
 			phase is over.
 		*/
 		for (const rect of json.Rectangles) {
+			if (this.allCards.isNexus(rect.CardID)) // ignore nexus
+				continue;
 			debugger;
 		}
 
 		// Handle draw events here.
 	}
 
-	_handleGenericEvents(json) {
+	_handleGenericEvents(time, json) {
 		const screenWidth = json.Screen.ScreenWidth;
 		const screenHeight = json.Screen.ScreenHeight;
 
@@ -81,8 +85,10 @@ module.exports = class GameInfo {
 
 			const objectLocation = Boardmapper.getObjectLocation(relativeX, relativeY);
 
-			const player = objectLocation.fieldOwner == FieldOwner.You ? this.you : this.them;
-			const fieldOwnerName = FieldOwnerNames[objectLocation.fieldOwner]; // "You" or "Them"
+			// TODO: Fully get rid of FieldOwner (in favor of rect.LocalPlayer)
+			const fieldOwner = rect.LocalPlayer ? FieldOwner.You : FieldOwner.Them;
+			const player = rect.LocalPlayer ? this.you : this.them;
+			const fieldOwnerName = FieldOwnerNames[fieldOwner]; // "You" or "Them"
 			
 			switch (objectLocation.location) {
 				case LocationType.Draw:
@@ -94,15 +100,19 @@ module.exports = class GameInfo {
 
 				case LocationType.Nexus:
 					if (player.nexus === 0) { // Nexus is not initialised
+						
 						player.nexus = rect.CardID;
-						console.log(`Initialised a nexus (Owner = ${fieldOwnerName}, ID = ${player.nexus})`);
+						this.allCards.addNexus(rect.CardID);
+						
+						this.actions.push(new CreateNexus(time));
+						console.log(`Initialised a nexus (Owner = ${fieldOwnerName}, ID = ${player.nexus}, time = ${time})`);
 					}
 					break;
 			}
 		}
 	}
 
-	_setToNextGameState(json) {
+	_setToNextGameState(time, json) {
 
 		const oldState = this.gameState;
 
@@ -116,7 +126,7 @@ module.exports = class GameInfo {
 				break;
 		}
 
-		console.log(`Switched from state ${GameStateNames[oldState]} to ${GameStateNames[this.gameState]}`)
+		console.log(`Switched from state ${GameStateNames[oldState]} to ${GameStateNames[this.gameState]} at ${time}`)
 	}
 	
 	asJsonString() {
