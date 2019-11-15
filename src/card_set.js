@@ -11,7 +11,7 @@ module.exports = class CardSet {
 		this.cards[id] = new CardInfo(id, code);
 
 		if (this.gameInfo) // If it's null, we're in the allCards CardSet itself.
-			this.gameInfo.allCards.addCard(this.cards[id]);
+			this.gameInfo.allCards.addCard(id, code);
 	}
 
 	hasCard(id) {
