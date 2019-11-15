@@ -1,4 +1,4 @@
-const LocationType = Object.freeze({
+const LocationType = module.exports["LocationType"] = Object.freeze({
 	"Unknown": 0,
 	"Draw": 1,
 	"Hand": 2,
@@ -7,17 +7,21 @@ const LocationType = Object.freeze({
 	"Nexus": 5
 });
 
-const FieldOwner = Object.freeze({
+module.exports["LocationTypeNames"] = translateToNames(module.exports["LocationType"]);
+
+const FieldOwner = module.exports["FieldOwner"] = Object.freeze({
 	"You": 0,
 	"Them": 1
 });
+
+module.exports["FieldOwnerNames"] = translateToNames(module.exports["FieldOwner"]);
 
 const process = require('process');
 let imageReader = null;
 const pluginName = '../build/Release/replayterra_boardmapper';
 const pluginDebugName = '../build/Debug/replayterra_boardmapper';
 
-export function getObjectLocation(x, y) {
+module.exports["getObjectLocation"] = function(x, y) {
 
 	const result = {};
 
@@ -29,7 +33,7 @@ export function getObjectLocation(x, y) {
 			break;
 
 		case 255:
-			result.FieldOwner = FieldOwner.Them;
+			result.fieldOwner = FieldOwner.Them;
 			break;
 
 		default:
@@ -70,13 +74,17 @@ export function getObjectLocation(x, y) {
 			case 255:
 				result.location = LocationType.Nexus;
 				break;
+	
+			case 128:
+				result.location = LocationType.Draw;
+				break;
 		}
 	}
 
 	return result;
 }
 
-export function load(forceDebug) {
+module.exports["load"] = function(forceDebug) {
 	if (forceDebug) {
 		imageReader = require(pluginDebugName);
 	}
@@ -89,8 +97,9 @@ export function load(forceDebug) {
 		imageReader = require(pluginDebugName);
 	}
 	
-	if (imageReader.load("assets/layer_template.png") == false) {
-		console.error("Unable to open the board mapping image");
+	const imagePath = __dirname + "/../assets/layer_template.png";
+	if (imageReader.load(imagePath) == false) {
+		console.error(`Unable to open the board mapping image at "${imagePath}"`);
 		process.exit(-1);
 	}
 }
@@ -98,3 +107,15 @@ export function load(forceDebug) {
 process.on('beforeExit', (code) => {
 	imageReader.unload();
 });
+
+function translateToNames(object) {
+	let names = {};
+	let keys = Object.keys(object);
+	
+	for (let i = keys.length - 1; i >= 0; i--) {
+		const value = object[keys[i]];
+		names[value] = keys[i];
+	}
+
+	return names;
+}
