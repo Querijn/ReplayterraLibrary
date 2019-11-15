@@ -1,6 +1,7 @@
 const Boardmapper = require("replayterra_boardmapper");
 const PlayerInfo = require("./player_info");
 const GameStateData = require("./game_state");
+const CardSet = require("./card_set");
 const GameState = GameStateData.GameState;
 const GameStateNames = GameStateData.GameStateNames;
 
@@ -17,10 +18,11 @@ module.exports = class GameInfo {
 		this.currentTime = 0;
 		this.gameState = GameState.Init;
 
-		this.you = new PlayerInfo();
-		this.them = new PlayerInfo();
+		this.you = new PlayerInfo(this);
+		this.them = new PlayerInfo(this);
 
 		this.actions = [];
+		this.allCards = new CardSet(null); // This will contain ALL known cards.
 	}
 
 	feedFrame(json) {
@@ -58,6 +60,9 @@ module.exports = class GameInfo {
 			When those cards are replaced, eventually the cards will move to the hand. This means draw
 			phase is over.
 		*/
+		for (const rect of json.Rectangles) {
+			debugger;
+		}
 
 		// Handle draw events here.
 	}
