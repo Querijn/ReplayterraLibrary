@@ -8,10 +8,22 @@ module.exports = class CardSet {
 	}
 
 	addCard(id, code) {
+
+		if (this.cards[id] != null)
+			throw new Error(`DuplicateCardError: We already have a card in the set with card ID ${id}`);
+
 		this.cards[id] = new CardInfo(id, code);
 
 		if (this.gameInfo) // If it's null, we're in the allCards CardSet itself.
 			this.gameInfo.allCards.addCard(id, code);
+	}
+
+	get cardArray() {
+		return Object.values(this.cards);
+	}
+
+	get length() {
+		return Object.keys(this.cards).length;
 	}
 
 	hasCard(id) {
