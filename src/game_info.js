@@ -26,6 +26,7 @@ module.exports = class GameInfo {
 		this.them = new PlayerInfo(this);
 
 		this.actions = [];
+		this.drawPhase = new DrawPhaseInfo();
 		this.allCards = new CardSet(null); // This will contain ALL known cards.
 	}
 
