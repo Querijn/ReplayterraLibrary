@@ -17,7 +17,6 @@ async function convertReplay(replayUuid) {
 	const userId = replayInfo.user_id;
 	const lastFrameIndex = parseInt(replayInfo.last_frame) / parseInt(replayInfo.interval);
 
-	const fs = require("fs");
 	const gameInfo = new GameInfo();
 
 	let lastFrame = null; // The json of the last frame.
@@ -27,21 +26,25 @@ async function convertReplay(replayUuid) {
 		debug.warn(`Loading frame ${frameIndex} (time = ${currentTime})..`);
 		const response = await fetch(`${replayApiUrl}/replays/${replayUuid}/${userId}/${currentTime}.json`);
 
-		 // TODO: The api needs to tell us either what frames are there or what the last frame is.
 		 // Currently it can skip a frame if it's the same as the previous one
 		if (response.ok == false) {
 			debug.warn(`Could not find frame ${frameIndex} (time: ${currentTime}, response: ${response.status} ${response.statusText})`);
 
-			if (lastFrame == null) 
+			if (lastFrame == null)
 				throw new Error('Unable to fetch last frame!');
 		}
 
 		const json = response.ok ? await response.json() : lastFrame;
 		gameInfo.feedFrame(currentTime, json);
-		debug.warn(`Loaded frame ${response.ok ? frameIndex : frameIndex - 1}.`);
 		lastFrame = json;
 	}
 
-	fs.writeFileSync(`${replayUuid}_${userId}.json`, gameInfo.asJsonString()); // Write as json string
+	return gameInfo.asJsonString();
 }
-convertReplay(testReplay);
+
+async function test() {
+	const fs = require("fs");
+	if (!fs.existsSync("replays")) fs.mkdirSync("replays");
+	fs.writeFileSync(`replays/${testReplay}.json`, convertReplay(testReplay));
+}
+test();
