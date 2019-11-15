@@ -7,15 +7,32 @@ module.exports = class CardSet {
 		this.cards = {};
 	}
 
-	addCard(id, code) {
+	addCard(rect) {
 
+		const id = rect.CardID;
 		if (this.cards[id] != null)
 			throw new Error(`DuplicateCardError: We already have a card in the set with card ID ${id}`);
 
-		this.cards[id] = new CardInfo(id, code);
+		this.cards[id] = new CardInfo(rect);
 
 		if (this.gameInfo) // If it's null, we're in the allCards CardSet itself.
-			this.gameInfo.allCards.addCard(id, code);
+			this.gameInfo.allCards._addExistingCard(this.cards[id]);
+
+		return this.cards[id];
+	}
+
+	_addExistingCard(card) {
+
+		if (this.gameInfo)
+			throw new Error("Cannot call this on non-parent.");
+
+		const id = card.id;
+		if (this.cards[id] != null)
+			throw new Error(`DuplicateCardError: We already have a card in the set with card ID ${id}`);
+
+		this.cards[id] = card;
+
+		return this.cards[id];
 	}
 
 	get cardArray() {
@@ -36,13 +53,16 @@ module.exports = class CardSet {
 
 	removeCard(id) {
 		delete this.cards[id];
+
+		if (this.gameInfo)
+			this.gameInfo.allCards.removeCard(id);
 	}
 
-	addNexus(id) {
+	addNexus(rect) {
 		if (this.gameInfo != null) // This call only works for allCards.
 			return;
 
-		this.cards[id] = new NexusInfo(id);
+		this.cards[rect.CardID] = new NexusInfo(rect);
 	}
 
 	isNexus(id) {
@@ -58,5 +78,10 @@ module.exports = class CardSet {
 
 		if (this.cards[id].isNexus)
 			delete this.cards[id];
+	}
+
+	moveTo(cardSet) {
+		cardSet.cards = this.cards;
+		this.cards = {};
 	}
 }

@@ -1,14 +1,15 @@
 module.exports = class CardInfo {
 
-	constructor(id, code) {
-		this.id = id;
-		this.code = code;
+	constructor(rect) {
+		this.id = rect.CardID;
+		this.code = rect.CardCode;
 		this.isNexus = false;
 		
-		this._x = -9999;
-		this._y = -9999;
-		this._prevX = -9999;
-		this._prevY = -9999;
+		this._prevX = this._x = rect.TopLeftX;
+		this._prevY = this._y = rect.TopLeftY;
+
+		this.width = rect.Width;
+		this.height = rect.Height;
 	}
 
 	setPos(x, y) {

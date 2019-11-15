@@ -2,8 +2,8 @@ const CardInfo = require("./card_info");
 
 module.exports = class NexusInfo extends CardInfo {
 
-	constructor(id) {
-		super(id, "face");
+	constructor(rect) {
+		super(rect);
 		this.isNexus = true;
 	}
 }

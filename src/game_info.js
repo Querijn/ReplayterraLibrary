@@ -12,6 +12,7 @@ const GameStateNames = GameStateData.GameStateNames;
 
 const CreateNexusAction = require("./actions/create_nexus");
 const ShowDrawCardAction = require("./actions/show_draw_card");
+const ReplaceDrawCardAction = require("./actions/replace_draw_card");
 
 const DrawPhase = Object.freeze({
 	"WaitForAppear": "WaitForAppear",				// Waiting for the cards to appear.
@@ -57,18 +58,31 @@ module.exports = class GameInfo {
 	}
 
 	_rectToObjLocation(rect) {
-		
 		const centerX = rect.TopLeftX + rect.Width / 2;
 		const centerY = rect.TopLeftY - rect.Height / 2; // This has to be negative because of the y coordinate inversion
+		return this._posToObjLocation(centerX, centerY);
+	}
 
-		const relativeX = centerX / this.screenWidth;
-		const relativeY = centerY / this.screenHeight;
+	_cardToObjLocation(card) {
+
+		if (card.isNexus) {
+			return { location: LocationType.Nexus };
+		}
+
+		const centerX = card.x + card.width / 2;
+		const centerY = card.y - card.height / 2; // This has to be negative because of the y coordinate inversion
+		return this._posToObjLocation(centerX, centerY);
+	}
+
+	_posToObjLocation(x, y) {
+		const relativeX = x / this.screenWidth;
+		const relativeY = y / this.screenHeight;
 
 		const isDrawPhase = this.gameState == GameState.Draw;
 		const location = Boardmapper.getObjectLocation(relativeX, relativeY, isDrawPhase);
 
 		if (location.location == LocationType.Unknown)
-			debug.error(`Could not determine location of ${rect.CardCode}! (TopLeft: ${rect.TopLeftX}, ${rect.TopLeftY}, Center: ${centerX}, ${centerY})`);
+			throw new Error(`Could not determine location! (${relativeX}, ${relativeY})`);
 
 		return location;
 	}
@@ -104,7 +118,7 @@ module.exports = class GameInfo {
 						continue;
 					
 					if (card == null) { // Card doesn't exist yet, add it.
-						player.drawnCards.addCard(rect.CardID, rect.CardCode);
+						player.drawnCards.addCard(rect);
 						this.actions.push(new ShowDrawCardAction(time, rect.CardID, rect.CardCode));
 						debug.log(`Draw Phase: ${rect.LocalPlayer ? "You" : "They"} drew a card  (${rect.CardCode}) at ${time}`);
 					}
@@ -132,15 +146,30 @@ module.exports = class GameInfo {
 					if (rect.LocalPlayer == false)
 						continue;
 
+					const objectLocation = this._rectToObjLocation(rect);
 					const card = player.drawnCards.getCard(rect.CardID);
 
 					if (card != null) { // Found one of our draw cards!
 						if (card.isNexus)
 							continue;
 
-						if (card.hasMoved) {
-							debug.log(`Draw Phase: Card ${rect.CardID} has moved!`);
-							movedCards[rect.CardID] = true;
+						// This is our end condition of this phase. 
+						if (objectLocation.location == LocationType.Hand) {
+
+							debugger;
+							if (this.drawPhase.receivedCards.length !== this.drawPhase.replacedCards.length)
+								throw new Error("How come we're moving towards the hand while we don't have all our cards yet?");
+
+							for (let i = 0; i < this.drawPhase.receivedCards.length; i++) {
+								const oldCard = this.drawPhase.replacedCards[i];
+								const newCard = this.drawPhase.receivedCards[i];
+								this.actions.push(new ReplaceDrawCardAction(time, oldCard.id, oldCard.code, newCard.id, newCard.code));
+							}
+
+							console.log("Draw Phase: Noticed a card ended up in the hand. Setting next game state.");
+							player.drawnCards.moveTo(player.handCards);
+							this._setToNextGameState(time, json);
+							return;
 						}
 
 						foundCards[rect.CardID] = true;
@@ -148,14 +177,13 @@ module.exports = class GameInfo {
 					}
 					
 					// Ignore nexuses
-					const objectLocation = this._rectToObjLocation(rect);
 					if (objectLocation.location == LocationType.Nexus)
 						continue;
 
 					// A new card appeared.
 					if (rect.CardCode !== "face") { // We know the card we received.
-						debug.log(`Draw Phase: Card ${rect.CardID} (${rect.CardCode}) has been received.`);
-						player.drawnCards.addCard(rect.CardID);
+						const card = player.drawnCards.addCard(rect);
+						this.drawPhase.receivedCards.push(card);
 					}
 					else { // TODO: Confirm this? In my test they were nexuses..
 						debug.log(`Draw Phase: Saw a new card (${rect.CardID}), but it's still face-down`);
@@ -163,13 +191,14 @@ module.exports = class GameInfo {
 					}
 				}
 
+				// Check if cards got removed.
 				for (let card of drawnCards) {
 					if (foundCards[card.id] == false) { // A card got removed.
 						player.drawnCards.removeCard(card.id);
+						this.drawPhase.replacedCards.push(card);
 						debug.log(`Draw Phase: Card ${card.id} (${card.code}) has been replaced. Waiting for new card..`);
 					}
 				}
-
 				break;
 			}
 
@@ -189,8 +218,6 @@ module.exports = class GameInfo {
 			// Check if we've handled this card.
 			const card = this.allCards.getCard(rect.CardID);
 			if (card) {
-
-				
 				if (!card.isNexus) {
 					if (card.x != rect.TopLeftX || card.y != rect.TopLeftY) { // card has moved
 						card.setPos(rect.TopLeftX, rect.TopLeftY);
@@ -198,6 +225,9 @@ module.exports = class GameInfo {
 					else {
 						card.resetPos(); // make hasMoved false.
 					}
+
+					card.width = rect.Width;
+					card.height = rect.Height;
 				}
 
 				continue;
@@ -216,7 +246,7 @@ module.exports = class GameInfo {
 						
 					// Nexus is not initialised
 					player.nexus = rect.CardID;
-					this.allCards.addNexus(rect.CardID);
+					this.allCards.addNexus(rect);
 					
 					this.actions.push(new CreateNexusAction(time));
 					debug.log(`Initialised a nexus (Owner = ${fieldOwnerName}, ID = ${player.nexus}, time = ${time})`);
@@ -234,8 +264,10 @@ module.exports = class GameInfo {
 				this.gameState = GameState.Draw;
 				this.subState = DrawPhase.WaitForAppear;
 				break;
+
 			case GameState.Draw:
 				// Shit, how do we detect who goes first?
+				// TODO: What comes here?
 				debugger;
 				break;
 		}

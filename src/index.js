@@ -3,7 +3,7 @@ const fetch = require("node-fetch");
 const debug = require("./debug");
 
 const replayApiUrl = `http://lor.stelar7.no/api`;
-const testReplay = `hOH5d7qm0WfY2JQccnoCnLwzUuBKryrfNSCAwZJOtQ206RTqGVWuiZ7jgMx8M9AEe9k45FIDjDXesK1Ilv6lTHiGaokUSPbLFNpV`;
+const testReplay = `1SZd5UVI7Cnsd4rtNshcPGLjK5F92WAYQX0eTyMDbgzEhmubDST34BGO8x7KfBL6UO3cXEwk0yllNiawjoHIrVQn8PqHRkZvpMt9`;
 
 async function convertReplay(replayUuid) {
 
