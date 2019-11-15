@@ -1,9 +1,10 @@
-const CardSet = require("./card_set")
+const CardSet = require("./card_set");
+const config = require("./config");
 
 module.exports = class PlayerInfo {
 
 	constructor(gameInfo) {
-		this.nexusHealth = 20;
+		this.nexusHealth = config.initialNexusHealth;
 
 		this.drawnCards = new CardSet(gameInfo);
 		this.handCards = new CardSet(gameInfo);
