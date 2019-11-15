@@ -2,12 +2,13 @@ const CardSet = require("./card_set")
 
 module.exports = class PlayerInfo {
 
-	constructor() {
+	constructor(gameInfo) {
 		this.nexusHealth = 20;
 
-		this.drawnCards = new CardSet();
-		this.handCards = new CardSet();
-		this.benchCards = new CardSet();
+		this.drawnCards = new CardSet(gameInfo);
+		this.handCards = new CardSet(gameInfo);
+		this.benchCards = new CardSet(gameInfo);
+		this.gameInfo = gameInfo;
 	}
 
 	get nexus() {
