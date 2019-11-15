@@ -8,6 +8,14 @@ namespace BoardMapper
 	int g_Width, g_Height, g_BytesPerPixel;
 	stbi_uc* g_Image = nullptr;
 
+	Napi::Value GetBuildTime(const Napi::CallbackInfo& a_Info)
+	{
+		Napi::Env t_Env = a_Info.Env();
+		char t_Text[128];
+		snprintf(t_Text, 128, "%s at %s", __DATE__, __TIME__);
+		return Napi::String::New(t_Env, t_Text);
+	}
+
 	Napi::Value Load(const Napi::CallbackInfo& a_Info)
 	{
 		Napi::Env t_Env = a_Info.Env();
@@ -100,13 +108,14 @@ namespace BoardMapper
 		return Napi::Number::New(t_Env, t_Colour);
 	}
 
-	Napi::Object Init(Napi::Env env, Napi::Object a_Exports)
+	Napi::Object Init(Napi::Env a_Env, Napi::Object a_Exports)
 	{
-		a_Exports.Set(Napi::String::New(env, "load"), Napi::Function::New(env, Load));
-		a_Exports.Set(Napi::String::New(env, "unload"), Napi::Function::New(env, Unload));
-		a_Exports.Set(Napi::String::New(env, "getRed"), Napi::Function::New(env, GetColour<0>));
-		a_Exports.Set(Napi::String::New(env, "getGreen"), Napi::Function::New(env, GetColour<1>));
-		a_Exports.Set(Napi::String::New(env, "getBlue"), Napi::Function::New(env, GetColour<2>));
+		a_Exports.Set(Napi::String::New(a_Env, "load"), Napi::Function::New(a_Env, Load));
+		a_Exports.Set(Napi::String::New(a_Env, "unload"), Napi::Function::New(a_Env, Unload));
+		a_Exports.Set(Napi::String::New(a_Env, "getRed"), Napi::Function::New(a_Env, GetColour<0>));
+		a_Exports.Set(Napi::String::New(a_Env, "getGreen"), Napi::Function::New(a_Env, GetColour<1>));
+		a_Exports.Set(Napi::String::New(a_Env, "getBlue"), Napi::Function::New(a_Env, GetColour<2>));
+		a_Exports.Set(Napi::String::New(a_Env, "getBuildTime"), Napi::Function::New(a_Env, GetBuildTime));
 		return a_Exports;
 	}
 

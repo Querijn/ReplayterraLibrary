@@ -21,7 +21,9 @@ let imageReader = null;
 const pluginName = '../build/Release/replayterra_boardmapper';
 const pluginDebugName = '../build/Debug/replayterra_boardmapper';
 
-module.exports["getObjectLocation"] = function(x, y) {
+module.exports["getBuildTime"] = () => imageReader.getBuildTime();
+
+module.exports["getObjectLocation"] = function(x, y, isDrawPhase) {
 
 	const result = {};
 
@@ -63,12 +65,14 @@ module.exports["getObjectLocation"] = function(x, y) {
 	}
 
 	const nexusId = imageReader.getBlue(x, y);
-	if (result.location === LocationType.Unknown) {
+	if (isDrawPhase || result.location === LocationType.Unknown) {
 		switch (nexusId) {
 			default:
 			case 0: 
+				if (result.location)
+					console.error(`Unable to determine card location type at ${x}, ${y}! (LocationID: ${locationId}, NexusID: ${nexusId})`)
+		
 				result.location = LocationType.Unknown;
-				console.error(`Unable to determine card location type at ${x}, ${y}! (LocationID: ${locationId}, NexusID: ${nexusId})`)
 				break;
 	
 			case 255:

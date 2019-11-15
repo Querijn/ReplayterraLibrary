@@ -17,7 +17,9 @@ const FieldOwnerNames = Boardmapper.FieldOwnerNames;
 module.exports = class GameInfo {
 
 	constructor() {
-		Boardmapper.load(); // Prepare the source image
+		Boardmapper.load(); // Prepare the source board image layout
+
+		debug.log(`The BoardMapper was built at ${Boardmapper.getBuildTime()}`); // I have the feeling it does not build sometimes.
 
 		this.currentTime = 0;
 		this.gameState = GameState.Init;
