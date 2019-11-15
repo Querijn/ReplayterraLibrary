@@ -1,3 +1,5 @@
+const config = require("./config");
+const debug = require("./debug");
 const Boardmapper = require("replayterra_boardmapper");
 const PlayerInfo = require("./player_info");
 const GameStateData = require("./game_state");
@@ -6,12 +8,12 @@ const GameState = GameStateData.GameState;
 const GameStateNames = GameStateData.GameStateNames;
 
 const CreateNexus = require("./actions/create_nexus");
+const ShowDrawCardAction = require("./actions/show_draw_card");
 
 const LocationType = Boardmapper.LocationType;
 const LocationTypeNames = Boardmapper.LocationTypeNames;
 const FieldOwner = Boardmapper.FieldOwner;
 const FieldOwnerNames = Boardmapper.FieldOwnerNames;
-
 module.exports = class GameInfo {
 
 	constructor() {
@@ -45,7 +47,7 @@ module.exports = class GameInfo {
 
 		// First, check if we're still in init frame:
 		if (json.OpponentName != null && json.PlayerName != null) {
-			console.log(`This replay is a match between ${json.OpponentName} and ${json.PlayerName}.`);
+			debug.log(`This replay is a match between ${json.OpponentName} and ${json.PlayerName}.`);
 			this._setToNextGameState(time, json);
 			return;
 		}
@@ -62,9 +64,24 @@ module.exports = class GameInfo {
 			When those cards are replaced, eventually the cards will move to the hand. This means draw
 			phase is over.
 		*/
+		let cardCount = 0;
 		for (const rect of json.Rectangles) {
-			if (this.allCards.isNexus(rect.CardID)) // ignore nexus
+
+			const player = rect.LocalPlayer ? this.you : this.them; // Should always be "this.you".
+
+			const card = this.allCards.getCard(rect.CardID);
+			if (card && card.isNexus) // ignore nexuses
 				continue;
+			
+			if (card == null) { // Card doesn't exist yet, add action.
+				player.drawnCards.addCard(rect.CardID, rect.CardCode);
+				this.actions.push(new ShowDrawCardAction(time, rect.CardID, rect.CardCode));
+				debug.log(`${rect.LocalPlayer ? "You" : "They"} drew a card  (${rect.CardCode}) at ${time} (Draw Phase)`);
+			}
+			cardCount++;
+		}
+
+		if (cardCount == config.drawCount) {
 			debugger;
 		}
 
@@ -105,7 +122,7 @@ module.exports = class GameInfo {
 						this.allCards.addNexus(rect.CardID);
 						
 						this.actions.push(new CreateNexus(time));
-						console.log(`Initialised a nexus (Owner = ${fieldOwnerName}, ID = ${player.nexus}, time = ${time})`);
+						debug.log(`Initialised a nexus (Owner = ${fieldOwnerName}, ID = ${player.nexus}, time = ${time})`);
 					}
 					break;
 			}
@@ -126,7 +143,7 @@ module.exports = class GameInfo {
 				break;
 		}
 
-		console.log(`Switched from state ${GameStateNames[oldState]} to ${GameStateNames[this.gameState]} at ${time}`)
+		debug.log(`Switched from state ${GameStateNames[oldState]} to ${GameStateNames[this.gameState]} at ${time}`)
 	}
 	
 	asJsonString() {
