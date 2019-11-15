@@ -15,7 +15,7 @@ async function convertReplay(replayUuid) {
 	const replayInfo = await replayInfoResponse.json();
 	const timeInterval = parseInt(replayInfo.interval);
 	const userId = replayInfo.user_id;
-	const lastFrameIndex = parseInt(replayInfo.last_frame) / parseInt(replayInfo.interval);
+	const lastFrameIndex = 42; // parseInt(replayInfo.last_frame) / parseInt(replayInfo.interval); // test for draw phase
 
 	const gameInfo = new GameInfo();
 
