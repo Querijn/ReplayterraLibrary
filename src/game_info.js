@@ -44,6 +44,23 @@ module.exports = class GameInfo {
 		}
 	}
 
+	_rectToObjLocation(rect) {
+		
+		const centerX = rect.TopLeftX + rect.Width / 2;
+		const centerY = rect.TopLeftY - rect.Height / 2; // This has to be negative because of the y coordinate inversion
+
+		const relativeX = centerX / this.screenWidth;
+		const relativeY = centerY / this.screenHeight;
+
+		const isDrawPhase = this.gameState == GameState.Draw;
+		const location = Boardmapper.getObjectLocation(relativeX, relativeY, isDrawPhase);
+
+		if (location.location == LocationType.Unknown)
+			debug.error(`Could not determine location of ${rect.CardCode}! (TopLeft: ${rect.TopLeftX}, ${rect.TopLeftY}, Center: ${centerX}, ${centerY})`);
+
+		return location;
+	}
+
 	_handleInitFrame(time, json) {
 
 		this._handleGenericEvents(time, json);
@@ -97,19 +114,15 @@ module.exports = class GameInfo {
 
 		for (const rect of json.Rectangles) {
 
-			const centerX = rect.TopLeftX + rect.Width / 2;
-			const centerY = rect.TopLeftY + rect.Height / 2;
 
-			const relativeX = centerX / screenWidth;
-			const relativeY = centerY / screenHeight;
 
-			const objectLocation = Boardmapper.getObjectLocation(relativeX, relativeY);
 
 			// TODO: Fully get rid of FieldOwner (in favor of rect.LocalPlayer)
 			const fieldOwner = rect.LocalPlayer ? FieldOwner.You : FieldOwner.Them;
 			const player = rect.LocalPlayer ? this.you : this.them;
 			const fieldOwnerName = FieldOwnerNames[fieldOwner]; // "You" or "Them"
 			
+			const objectLocation = this._rectToObjLocation(rect);
 			switch (objectLocation.location) {
 				case LocationType.Draw:
 					if (player.drawnCards.hasCard() == false) {

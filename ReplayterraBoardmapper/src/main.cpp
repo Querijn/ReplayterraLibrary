@@ -89,7 +89,7 @@ namespace BoardMapper
 		if (x < 0) x = 0;
 		if (y < 0) y = 0;
 
-		y = 1.0 - y; // DX10+/OpenGL inversion
+		// y = 1.0 - y; // DX10+/OpenGL inversion
 
 		x *= g_Width;
 		y *= g_Height;
@@ -102,8 +102,10 @@ namespace BoardMapper
 
 
 		size_t t_PixelIndex = (size_t)floor(y) * g_Width + (size_t)floor(x);
-		// size_t t_Max = g_Height * g_Width * g_BytesPerPixel;
-		// printf("BoardMapper::GetColour: %3.2f and %3.2f -> pixel %zu / %zu\n", x, y, t_PixelIndex * g_BytesPerPixel + i, t_Max);
+		
+		size_t t_Max = g_Height * g_Width * g_BytesPerPixel;
+		printf("BoardMapper::GetColour: %3.2f and %3.2f -> pixel %zu / %zu\n", x, y, t_PixelIndex * g_BytesPerPixel + i, t_Max);
+		
 		unsigned char t_Colour = g_Image[t_PixelIndex * g_BytesPerPixel + i];
 		return Napi::Number::New(t_Env, t_Colour);
 	}
