@@ -69,10 +69,9 @@ module.exports["getObjectLocation"] = function(x, y, isDrawPhase) {
 		switch (nexusId) {
 			default:
 			case 0: 
-				if (result.location)
+				if (result.location === LocationType.Unknown) {
 					console.error(`Unable to determine card location type at ${x}, ${y}! (LocationID: ${locationId}, NexusID: ${nexusId})`)
-		
-				result.location = LocationType.Unknown;
+				}
 				break;
 	
 			case 255:

@@ -89,8 +89,6 @@ namespace BoardMapper
 		if (x < 0) x = 0;
 		if (y < 0) y = 0;
 
-		// y = 1.0 - y; // DX10+/OpenGL inversion
-
 		x *= g_Width;
 		y *= g_Height;
 
@@ -99,7 +97,6 @@ namespace BoardMapper
 			y = g_Height - 1;
 		if (x >= g_Width)
 			x = g_Width - 1;
-
 
 		size_t t_PixelIndex = (size_t)floor(y) * g_Width + (size_t)floor(x);
 		
