@@ -106,6 +106,7 @@ module.exports["load"] = function(forceDebug) {
 
 process.on('beforeExit', (code) => {
 	imageReader.unload();
+	console.log("Unloaded module.");
 });
 
 function translateToNames(object) {
