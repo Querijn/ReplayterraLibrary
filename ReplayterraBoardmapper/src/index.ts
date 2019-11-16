@@ -67,7 +67,7 @@ export default {
         return result;
     },
 
-    load: function (forceDebug: boolean) {
+    load: function (forceDebug: boolean = false) {
         if (forceDebug) {
             imageReader = require(pluginDebugName);
         }

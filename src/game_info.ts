@@ -23,10 +23,6 @@ enum DrawPhaseSubstate {
 	WaitForResolve = "WaitForResolve"				// Waiting for either cards to get replaced, or them to move to hand
 }
 
-const LocationType = Boardmapper.LocationType;
-const FieldOwner = Boardmapper.FieldOwner;
-const FieldOwnerNames = Boardmapper.FieldOwnerNames;
-
 export default class GameInfo {
 
 	private gameState = GameState.Init;
@@ -62,16 +58,16 @@ export default class GameInfo {
 		}
 	}
 
-	_rectToObjLocation(rect: LoRRect) {
+	_rectToObjLocation(rect: LoRRect): Boardmapper.LocationType {
 		const centerX = rect.TopLeftX + rect.Width / 2;
 		const centerY = rect.TopLeftY - rect.Height / 2; // This has to be negative because of the y coordinate inversion
 		return this._posToObjLocation(centerX, centerY);
 	}
 
-	_cardToObjLocation(card: CardInfo) {
+	_cardToObjLocation(card: CardInfo): Boardmapper.LocationType {
 
 		if (card.isNexus) {
-			return { location: LocationType.Nexus };
+			return { location: Boardmapper.LocationType.Nexus };
 		}
 
 		const centerX = card.x + card.width / 2;
@@ -79,14 +75,14 @@ export default class GameInfo {
 		return this._posToObjLocation(centerX, centerY);
 	}
 
-	_posToObjLocation(x: number, y: number) {
+	_posToObjLocation(x: number, y: number): Boardmapper.LocationType {
 		const relativeX = x / this.screenWidth;
 		const relativeY = y / this.screenHeight;
 
 		const isDrawPhase = this.gameState == GameState.Draw;
 		const location = Boardmapper.getObjectLocation(relativeX, relativeY, isDrawPhase);
 
-		if (location == LocationType.Unknown)
+		if (location == Boardmapper.LocationType.Unknown)
 			throw new Error(`Could not determine location! (${relativeX}, ${relativeY})`);
 
 		return location;
@@ -157,7 +153,7 @@ export default class GameInfo {
 							continue;
 
 						// This is our end condition of this phase. 
-						if (objectLocation == LocationType.Hand) {
+						if (objectLocation == Boardmapper.LocationType.Hand) {
 
 							debugger;
 							if (this.drawPhase.receivedCards.length !== this.drawPhase.replacedCards.length)
@@ -180,7 +176,7 @@ export default class GameInfo {
 					}
 					
 					// Ignore nexuses
-					if (objectLocation == LocationType.Nexus)
+					if (objectLocation == Boardmapper.LocationType.Nexus)
 						continue;
 
 					// A new card appeared.
@@ -236,14 +232,12 @@ export default class GameInfo {
 				continue;
 			}
 
-			// TODO: Fully get rid of FieldOwner (in favor of rect.LocalPlayer)
-			const fieldOwner = rect.LocalPlayer ? FieldOwner.You : FieldOwner.Them;
 			const player = rect.LocalPlayer ? this.you : this.them;
-			const fieldOwnerName = FieldOwnerNames[fieldOwner]; // "You" or "Them"
+			const fieldOwnerName =  rect.LocalPlayer ? "You" : "Them";
 			
 			const objectLocation = this._rectToObjLocation(rect);
 			switch (objectLocation) {
-				case LocationType.Nexus:
+				case Boardmapper.LocationType.Nexus:
 					if (player.nexus !== "0") // Nexus is initialised, skip
 						break;
 						

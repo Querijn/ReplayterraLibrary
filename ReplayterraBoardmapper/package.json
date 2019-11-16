@@ -3,7 +3,7 @@
 	"version": "1.0.0",
 	"private": true,
 	"scripts": {
-		"compile": "./node_modules/.bin/node-gyp.cmd -j 8 rebuild && tsc -p .",
+		"compile": "./node_modules/.bin/node-gyp.cmd -j 8 rebuild && ./node_modules/.bin/tsc -p .",
 		"start": "npm run compile && node ./dist/test.js"
 	},
 	"dependencies": {
@@ -15,5 +15,6 @@
 	"devDependencies": {
 		"@types/node": "^8.0.22"
 	},
-	"gypfile": true
+	"gypfile": true,
+	"types": "dist/index.d.ts"
 }

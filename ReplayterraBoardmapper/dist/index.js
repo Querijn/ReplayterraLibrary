@@ -58,7 +58,7 @@ exports.default = {
         }
         return result;
     },
-    load: function (forceDebug) {
+    load: function (forceDebug = false) {
         if (forceDebug) {
             imageReader = require(pluginDebugName);
         }
