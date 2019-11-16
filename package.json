@@ -20,5 +20,8 @@
     "node-fetch": "^2.6.0",
     "replayterra_boardmapper": "file:ReplayterraBoardmapper",
     "typescript": "^3.7.2"
+  },
+  "devDependencies": {
+      "@types/node": "^8.0.22"
   }
 }

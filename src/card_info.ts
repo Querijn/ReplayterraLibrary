@@ -4,7 +4,7 @@ export default class CardInfo {
 
 	public id: string;
 	public code: string;
-	public isNexus: false;
+	public isNexus: boolean;
 	
 	private _prevX: number;
 	private _prevY: number;
@@ -35,7 +35,7 @@ export default class CardInfo {
 		this._y = y;
 	}
 	
-	resetPos(x: number, y: number) {
+	resetPos() {
 		this._prevX = this._x;
 		this._prevY = this._y;
 	}

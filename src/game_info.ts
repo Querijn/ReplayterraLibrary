@@ -86,7 +86,7 @@ export default class GameInfo {
 		const isDrawPhase = this.gameState == GameState.Draw;
 		const location = Boardmapper.getObjectLocation(relativeX, relativeY, isDrawPhase);
 
-		if (location.location == LocationType.Unknown)
+		if (location == LocationType.Unknown)
 			throw new Error(`Could not determine location! (${relativeX}, ${relativeY})`);
 
 		return location;
@@ -140,11 +140,9 @@ export default class GameInfo {
 			case DrawPhaseSubstate.WaitForResolve: {
 
 				const drawnCards = player.drawnCards.cardArray;
-				const foundCards = {};
-				const movedCards = {};
+				const foundCards: { [id: string]: boolean } = {};
 				for (let card of drawnCards) {
 					foundCards[card.id] = false;
-					movedCards[card.id] = false;
 				}
 				
 				for (const rect of json.Rectangles) {
@@ -159,7 +157,7 @@ export default class GameInfo {
 							continue;
 
 						// This is our end condition of this phase. 
-						if (objectLocation.location == LocationType.Hand) {
+						if (objectLocation == LocationType.Hand) {
 
 							debugger;
 							if (this.drawPhase.receivedCards.length !== this.drawPhase.replacedCards.length)
@@ -182,7 +180,7 @@ export default class GameInfo {
 					}
 					
 					// Ignore nexuses
-					if (objectLocation.location == LocationType.Nexus)
+					if (objectLocation == LocationType.Nexus)
 						continue;
 
 					// A new card appeared.
@@ -244,9 +242,9 @@ export default class GameInfo {
 			const fieldOwnerName = FieldOwnerNames[fieldOwner]; // "You" or "Them"
 			
 			const objectLocation = this._rectToObjLocation(rect);
-			switch (objectLocation.location) {
+			switch (objectLocation) {
 				case LocationType.Nexus:
-					if (player.nexus !== 0) // Nexus is initialised, skip
+					if (player.nexus !== "0") // Nexus is initialised, skip
 						break;
 						
 					// Nexus is not initialised
