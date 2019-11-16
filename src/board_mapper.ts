@@ -6,7 +6,7 @@ let bpp = 3;
 
 export enum LocationType {
 	Unknown = 0,
-	Draw = 1,
+	Mulligan = 1,
 	Hand = 2,
 	Bench = 3,
 	Field = 4,
@@ -22,7 +22,7 @@ enum LocationColourGreen {
 
 enum LocationColourBlue {
 	Unknown = 0,
-	Draw = 128,
+	Mulligan = 128,
 	Nexus = 255
 };
 
@@ -64,7 +64,7 @@ function getBlue(x: number, y: number): LocationColourBlue {
 
 export const Boardmapper = {
 
-	getObjectLocation: function (x: number, y: number, isDrawPhase: boolean): LocationType {
+	getObjectLocation: function (x: number, y: number, isMulliganPhase: boolean): LocationType {
 
 		let result: LocationType;
 
@@ -89,7 +89,7 @@ export const Boardmapper = {
 		}
 
 		const nexusId = getBlue(x, y);
-		if (isDrawPhase || result === LocationType.Unknown) {
+		if (isMulliganPhase || result === LocationType.Unknown) {
 			switch (nexusId) {
 				default:
 				case LocationColourBlue.Unknown: 
@@ -102,8 +102,8 @@ export const Boardmapper = {
 					result = LocationType.Nexus;
 					break;
 		
-				case LocationColourBlue.Draw:
-					result = LocationType.Draw;
+				case LocationColourBlue.Mulligan:
+					result = LocationType.Mulligan;
 					break;
 			}
 		}

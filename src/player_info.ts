@@ -5,7 +5,7 @@ import GameInfo from "./game_info";
 
 export default class PlayerInfo {
 
-	public drawnCards: CardSet;
+	public mulliganCards: CardSet;
 	public handCards: CardSet;
 	public benchCards: CardSet;
 
@@ -15,7 +15,7 @@ export default class PlayerInfo {
 	constructor(gameInfo: GameInfo) {
 		this.nexusHealth = config.initialNexusHealth;
 
-		this.drawnCards = new CardSet(gameInfo);
+		this.mulliganCards = new CardSet(gameInfo);
 		this.handCards = new CardSet(gameInfo);
 		this.benchCards = new CardSet(gameInfo);
 	}

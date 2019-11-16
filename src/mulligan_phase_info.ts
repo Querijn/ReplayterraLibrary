@@ -1,6 +1,6 @@
 import CardInfo from "./card_info";
 
-export default class DrawPhaseInfo {
+export default class MulliganPhaseInfo {
 
 	public replacedCards: CardInfo[];
 	public receivedCards: CardInfo[];

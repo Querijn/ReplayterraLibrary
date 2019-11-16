@@ -2,7 +2,7 @@ import config from "./config";
 import debug from "./debug";
 
 import PlayerInfo from "./player_info";
-import DrawPhaseInfo from "./draw_phase_info";
+import MulliganPhaseInfo from "./mulligan_phase_info";
 import CardInfo from "./card_info";
 
 import { Boardmapper, LocationType } from "./board_mapper";
@@ -10,14 +10,14 @@ import { GameState } from "./game_state";
 import CardSet from "./card_set";
 
 import CreateNexusAction from "./actions/create_nexus";
-import ShowDrawCardAction from "./actions/show_draw_card";
-import ReplaceDrawCardAction from "./actions/replace_draw_card";
+import ShowMulliganCardAction from "./actions/show_mulligan_card";
+import ReplaceMulliganCardAction from "./actions/replace_mulligan_card";
 import BaseAction from "./actions/base_action";
 
 import LoRFrame from "./LegendsOfRuneterra/Frame";
 import LoRRect from "./LegendsOfRuneterra/Rect";
 
-enum DrawPhaseSubstate {
+enum MulliganPhaseSubstate {
 	WaitForAppear = "WaitForAppear",				// Waiting for the cards to appear.
 	WaitForResolve = "WaitForResolve"				// Waiting for either cards to get replaced, or them to move to hand
 }
@@ -25,7 +25,7 @@ enum DrawPhaseSubstate {
 export default class GameInfo {
 
 	private gameState = GameState.Init;
-	private subState: DrawPhaseSubstate | null;
+	private subState: MulliganPhaseSubstate | null;
 
 	private screenWidth = 1;
 	private screenHeight = 1;
@@ -34,14 +34,14 @@ export default class GameInfo {
 	private them = new PlayerInfo(this);
 
 	private actions: BaseAction[] = [];
-	private drawPhase = new DrawPhaseInfo();
+	private mulliganPhase = new MulliganPhaseInfo();
 	public allCards = new CardSet(null);
 
 	private mapperLoadPromise: Promise<void> | null;
 
 	constructor() {
 		this.mapperLoadPromise = Boardmapper.load();
-		this.drawPhase = new DrawPhaseInfo();
+		this.mulliganPhase = new MulliganPhaseInfo();
 	}
 
 	async feedFrame(time: number, json: LoRFrame) {
@@ -56,8 +56,8 @@ export default class GameInfo {
 			case GameState.Init:
 				this._handleInitFrame(time, json);
 				break;
-			case GameState.Draw:
-				this._handleDrawFrame(time, json);
+			case GameState.Mulligan:
+				this._handleMulliganFrame(time, json);
 				break;
 		}
 	}
@@ -83,8 +83,8 @@ export default class GameInfo {
 		const relativeX = x / this.screenWidth;
 		const relativeY = y / this.screenHeight;
 
-		const isDrawPhase = this.gameState == GameState.Draw;
-		const location = Boardmapper.getObjectLocation(relativeX, relativeY, isDrawPhase);
+		const isMulliganPhase = this.gameState == GameState.Mulligan;
+		const location = Boardmapper.getObjectLocation(relativeX, relativeY, isMulliganPhase);
 
 		if (location == LocationType.Unknown)
 			throw new Error(`Could not determine location! (${x}, ${y} -> ${relativeX}, ${relativeY})`);
@@ -106,13 +106,13 @@ export default class GameInfo {
 		// Do init stuff here (which I don't have right now)
 	}
 
-	_handleDrawFrame(time: number, json: LoRFrame) {
+	_handleMulliganFrame(time: number, json: LoRFrame) {
 
 		this._handleGenericEvents(time, json);
 		const player = this.you; // Ignore opponent for this phase.
 
 		switch(this.subState) {
-			case DrawPhaseSubstate.WaitForAppear: {
+			case MulliganPhaseSubstate.WaitForAppear: {
 				let cardCount = 0;
 				for (const rect of json.Rectangles) {
 					if (rect.LocalPlayer == false)
@@ -123,25 +123,25 @@ export default class GameInfo {
 						continue;
 					
 					if (card == null) { // Card doesn't exist yet, add it.
-						player.drawnCards.addCard(rect);
-						this.actions.push(new ShowDrawCardAction(time, rect.CardID, rect.CardCode));
-						debug.log(`Draw Phase: ${rect.LocalPlayer ? "You" : "They"} drew a card  (${rect.CardCode}) at ${time}`);
+						player.mulliganCards.addCard(rect);
+						this.actions.push(new ShowMulliganCardAction(time, rect.CardID, rect.CardCode));
+						debug.log(`Mulligan Phase: ${rect.LocalPlayer ? "You" : "They"} drew a card  (${rect.CardCode}) at ${time}`);
 					}
 					cardCount++;
 				}
 
-				if (cardCount == config.drawCount) {
-					this.subState = DrawPhaseSubstate.WaitForResolve;
-					debug.log(`Draw Phase: We've seen all ${config.drawCount} cards, waiting for replacements and for them to move to the hand.`);
+				if (cardCount == config.mulliganCount) {
+					this.subState = MulliganPhaseSubstate.WaitForResolve;
+					debug.log(`Mulligan Phase: We've seen all ${config.mulliganCount} cards, waiting for replacements and for them to move to the hand.`);
 				}
 				break;
 			}
 
-			case DrawPhaseSubstate.WaitForResolve: {
+			case MulliganPhaseSubstate.WaitForResolve: {
 
-				const drawnCards = player.drawnCards.cardArray;
+				const mulliganCardArray = player.mulliganCards.cardArray;
 				const foundCards: { [id: string]: boolean } = {};
-				for (let card of drawnCards) {
+				for (let card of mulliganCardArray) {
 					foundCards[card.id] = false;
 				}
 				
@@ -150,25 +150,25 @@ export default class GameInfo {
 						continue;
 
 					const objectLocation = this._rectToObjLocation(rect);
-					const card = player.drawnCards.getCard(rect.CardID);
+					const card = player.mulliganCards.getCard(rect.CardID);
 
-					if (card != null) { // Found one of our draw cards!
+					if (card != null) { // Found one of our mulligan cards!
 						if (card.isNexus)
 							continue;
 
 						// This is our end condition of this phase. 
 						if (objectLocation == LocationType.Hand) {
-							if (this.drawPhase.receivedCards.length !== this.drawPhase.replacedCards.length)
+							if (this.mulliganPhase.receivedCards.length !== this.mulliganPhase.replacedCards.length)
 								throw new Error("How come we're moving towards the hand while we don't have all our cards yet?");
 
-							for (let i = 0; i < this.drawPhase.receivedCards.length; i++) {
-								const oldCard = this.drawPhase.replacedCards[i];
-								const newCard = this.drawPhase.receivedCards[i];
-								this.actions.push(new ReplaceDrawCardAction(time, oldCard.id, oldCard.code, newCard.id, newCard.code));
+							for (let i = 0; i < this.mulliganPhase.receivedCards.length; i++) {
+								const oldCard = this.mulliganPhase.replacedCards[i];
+								const newCard = this.mulliganPhase.receivedCards[i];
+								this.actions.push(new ReplaceMulliganCardAction(time, oldCard.id, oldCard.code, newCard.id, newCard.code));
 							}
 
-							debug.log("Draw Phase: Noticed a card ended up in the hand. Setting next game state.");
-							player.drawnCards.moveTo(player.handCards);
+							debug.log("Mulligan Phase: Noticed a card ended up in the hand. Setting next game state.");
+							player.mulliganCards.moveTo(player.handCards);
 							this._setToNextGameState(time, json);
 							return;
 						}
@@ -183,21 +183,21 @@ export default class GameInfo {
 
 					// A new card appeared.
 					if (rect.CardCode !== "face") { // We know the card we received.
-						const card = player.drawnCards.addCard(rect);
-						this.drawPhase.receivedCards.push(card);
+						const card = player.mulliganCards.addCard(rect);
+						this.mulliganPhase.receivedCards.push(card);
 					}
 					else { // TODO: Confirm this? In my test they were nexuses..
-						debug.log(`Draw Phase: Saw a new card (${rect.CardID}), but it's still face-down`);
+						debug.log(`Mulligan Phase: Saw a new card (${rect.CardID}), but it's still face-down`);
 						continue;
 					}
 				}
 
 				// Check if cards got removed.
-				for (let card of drawnCards) {
+				for (let card of mulliganCardArray) {
 					if (foundCards[card.id] == false) { // A card got removed.
-						player.drawnCards.removeCard(card.id);
-						this.drawPhase.replacedCards.push(card);
-						debug.log(`Draw Phase: Card ${card.id} (${card.code}) has been replaced. Waiting for new card..`);
+						player.mulliganCards.removeCard(card.id);
+						this.mulliganPhase.replacedCards.push(card);
+						debug.log(`Mulligan Phase: Card ${card.id} (${card.code}) has been replaced. Waiting for new card..`);
 					}
 				}
 				break;
@@ -260,11 +260,11 @@ export default class GameInfo {
 
 		switch (this.gameState) {
 			case GameState.Init:
-				this.gameState = GameState.Draw;
-				this.subState = DrawPhaseSubstate.WaitForAppear;
+				this.gameState = GameState.Mulligan;
+				this.subState = MulliganPhaseSubstate.WaitForAppear;
 				break;
 
-			case GameState.Draw:
+			case GameState.Mulligan:
 				// Shit, how do we detect who goes first?
 				// TODO: What comes here?
 				debugger;
