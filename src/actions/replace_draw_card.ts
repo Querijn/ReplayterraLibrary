@@ -2,8 +2,8 @@ import BaseAction from "./base_action";
 
 export default class ReplaceDrawCardAction extends BaseAction {
 
-	public oldCard: { id: string; code: string; };
-	public newCard: { id: string; code: string; };
+	public oldCard = { id: "", code: "" };
+	public newCard = { id: "", code: "" };
 
 	constructor(time: number, oldCardId: string, oldCardCode: string, newCardId: string, newCardCode: string) {
 		super("ReplaceDrawCard", time);
