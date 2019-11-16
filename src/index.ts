@@ -1,11 +1,13 @@
 import GameInfo from "./game_info";
 import fetch from "node-fetch";
 import debug from "./debug";
+import LoRFrame from "./LegendsOfRuneterra/Frame";
+import fs = require("fs");
 
 const replayApiUrl = `http://lor.stelar7.no/api`;
 const testReplay = `1SZd5UVI7Cnsd4rtNshcPGLjK5F92WAYQX0eTyMDbgzEhmubDST34BGO8x7KfBL6UO3cXEwk0yllNiawjoHIrVQn8PqHRkZvpMt9`;
 
-async function convertReplay(replayUuid) {
+async function convertReplay(replayUuid: string) {
 
 	// TODO: The below needs a user ID.
 	const replayInfoResponse = await fetch(`${replayApiUrl}/replay_by_id.php?id=${replayUuid}`);
@@ -34,16 +36,15 @@ async function convertReplay(replayUuid) {
 				throw new Error('Unable to fetch last frame!');
 		}
 
-		const json = response.ok ? await response.json() : lastFrame;
-		gameInfo.feedFrame(currentTime, json);
-		lastFrame = json;
+		const currentFrame: LoRFrame = response.ok ? await response.json() : lastFrame;
+		gameInfo.feedFrame(currentTime, currentFrame);
+		lastFrame = currentFrame;
 	}
 
 	return gameInfo.asJsonString();
 }
 
 async function test() {
-	import fs from "fs";
 	if (!fs.existsSync("replays")) fs.mkdirSync("replays");
 	fs.writeFileSync(`replays/${testReplay}.json`, convertReplay(testReplay));
 }

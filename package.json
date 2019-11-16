@@ -4,7 +4,7 @@
   "description": "A library to interpret card position stream as gameboard state for Legends of Runeterra",
   "scripts": {
     "compile": "tsc -p .",
-    "start": "tsc -p . && node ./dist/index.js",
+    "start": "tsc -p . && node ./dist/index.js"
   },
   "author": "Querijn Heijmans <querijn@irule.at>",
   "repository": {
@@ -22,6 +22,7 @@
     "typescript": "^3.7.2"
   },
   "devDependencies": {
-      "@types/node": "^8.0.22"
+    "@types/node-fetch": "^2.5.3",
+    "@types/node": "^8.0.22"
   }
 }
