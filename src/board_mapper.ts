@@ -1,4 +1,5 @@
 import Jimp from 'jimp';
+import debug from "./debug";
 
 let image: any  = null;
 let bpp = 3;
@@ -28,7 +29,7 @@ enum LocationColourBlue {
 function getColour(x: number, y: number, i: number): any {
 	
 	if (x < 0 || y < 0 || x > 1 || y > 1)
-		console.warn("Boardmapper.getColour expected x and y between 0 and 1, got %3.2f and %3.2f instead. We're clamping these numbers!\n", x, y);
+		debug.warn("Boardmapper.getColour expected x and y between 0 and 1, got %3.2f and %3.2f instead. We're clamping these numbers!\n", x, y);
 
 	y = 1 - y;
 
@@ -48,7 +49,7 @@ function getColour(x: number, y: number, i: number): any {
 	const pixel = image.bitmap.data[pixelIndex * bpp + i];
 	
 	// const max = image.bitmap.height * image.bitmap.width * bpp;
-	// console.log(`Boardmapper.getColour: ${x}, ${y} -> pixel ${pixelIndex * bpp + i} / ${max} -> result = ${pixel}\n`);
+	// debug.log(`Boardmapper.getColour: ${x}, ${y} -> pixel ${pixelIndex * bpp + i} / ${max} -> result = ${pixel}\n`);
 	
 	return pixel;
 }
@@ -93,7 +94,7 @@ export const Boardmapper = {
 				default:
 				case LocationColourBlue.Unknown: 
 					if (result === LocationType.Unknown) {
-						console.error(`Unable to determine card location type at ${x}, ${y}! (LocationID: ${locationId}, NexusID: ${nexusId})`)
+						debug.error(`Unable to determine card location type at ${x}, ${y}! (LocationID: ${locationId}, NexusID: ${nexusId})`)
 					}
 					break;
 		

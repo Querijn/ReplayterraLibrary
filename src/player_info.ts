@@ -1,5 +1,6 @@
 import CardSet from "./card_set";
 import config from "./config";
+import debug from "./debug";
 import GameInfo from "./game_info";
 
 export default class PlayerInfo {
@@ -26,7 +27,7 @@ export default class PlayerInfo {
 	set nexus(id: string) {
 
 		if (this.nexusId) {
-			console.warn(`Tried to set a new nexus ID: ${id}, but we already have an ID.. (${this.nexusId})`);
+			debug.warn(`Tried to set a new nexus ID: ${id}, but we already have an ID.. (${this.nexusId})`);
 			return;
 		}
 

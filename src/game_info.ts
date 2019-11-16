@@ -167,7 +167,7 @@ export default class GameInfo {
 								this.actions.push(new ReplaceDrawCardAction(time, oldCard.id, oldCard.code, newCard.id, newCard.code));
 							}
 
-							console.log("Draw Phase: Noticed a card ended up in the hand. Setting next game state.");
+							debug.log("Draw Phase: Noticed a card ended up in the hand. Setting next game state.");
 							player.drawnCards.moveTo(player.handCards);
 							this._setToNextGameState(time, json);
 							return;
