@@ -1,4 +1,4 @@
-module.exports = {
+export default {
 	"shouldDebug": true,			// Should debug messages appear?
 
 	"initialNexusHealth": 20,		// Nexus health at the start of the game.

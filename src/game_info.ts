@@ -1,51 +1,56 @@
-const config = require("./config");
-const debug = require("./debug");
-const Boardmapper = require("replayterra_boardmapper");
-const CardSet = require("./card_set");
+import Boardmapper from "replayterra_boardmapper";
 
-const PlayerInfo = require("./player_info");
-const DrawPhaseInfo = require("./draw_phase_info");
+import config from "./config";
+import debug from "./debug";
 
-const GameStateData = require("./game_state");
-const GameState = GameStateData.GameState;
-const GameStateNames = GameStateData.GameStateNames;
+import PlayerInfo from "./player_info";
+import DrawPhaseInfo from "./draw_phase_info";
+import CardInfo from "./card_info";
 
-const CreateNexusAction = require("./actions/create_nexus");
-const ShowDrawCardAction = require("./actions/show_draw_card");
-const ReplaceDrawCardAction = require("./actions/replace_draw_card");
+import { GameState } from "./game_state";
+import CardSet from "./card_set";
 
-const DrawPhase = Object.freeze({
-	"WaitForAppear": "WaitForAppear",				// Waiting for the cards to appear.
-	"WaitForResolve": "WaitForResolve"				// Waiting for either cards to get replaced, or them to move to hand
-});
+import CreateNexusAction from "./actions/create_nexus";
+import ShowDrawCardAction from "./actions/show_draw_card";
+import ReplaceDrawCardAction from "./actions/replace_draw_card";
+import BaseAction from "./actions/base_action";
+
+import LoRFrame from "./LegendsOfRuneterra/Frame";
+import LoRRect from "./LegendsOfRuneterra/Rect";
+
+enum DrawPhaseSubstate {
+	WaitForAppear = "WaitForAppear",				// Waiting for the cards to appear.
+	WaitForResolve = "WaitForResolve"				// Waiting for either cards to get replaced, or them to move to hand
+}
 
 const LocationType = Boardmapper.LocationType;
-const LocationTypeNames = Boardmapper.LocationTypeNames;
 const FieldOwner = Boardmapper.FieldOwner;
 const FieldOwnerNames = Boardmapper.FieldOwnerNames;
-module.exports = class GameInfo {
+
+export default class GameInfo {
+
+	private gameState = GameState.Init;
+	private subState: DrawPhaseSubstate | null;
+
+	private screenWidth = 1;
+	private screenHeight = 1;
+
+	private you = new PlayerInfo(this);
+	private them = new PlayerInfo(this);
+
+	private actions: BaseAction[] = [];
+	private drawPhase = new DrawPhaseInfo();
+	public allCards = new CardSet(null);
 
 	constructor() {
 		Boardmapper.load(); // Prepare the source board image layout
 
 		debug.log(`The BoardMapper was built on ${Boardmapper.getBuildTime()}`); // I have the feeling it does not build sometimes.
 
-		this.currentTime = 0;
-		this.gameState = GameState.Init;
-		this.subState = null;
-
-		this.screenWidth = 1;
-		this.screenHeight = 1;
-
-		this.you = new PlayerInfo(this);
-		this.them = new PlayerInfo(this);
-
-		this.actions = [];
 		this.drawPhase = new DrawPhaseInfo();
-		this.allCards = new CardSet(null); // This will contain ALL known cards.
 	}
 
-	feedFrame(time, json) {
+	feedFrame(time: number, json: LoRFrame) {
 
 		switch (this.gameState) {
 			case GameState.Init:
@@ -57,13 +62,13 @@ module.exports = class GameInfo {
 		}
 	}
 
-	_rectToObjLocation(rect) {
+	_rectToObjLocation(rect: LoRRect) {
 		const centerX = rect.TopLeftX + rect.Width / 2;
 		const centerY = rect.TopLeftY - rect.Height / 2; // This has to be negative because of the y coordinate inversion
 		return this._posToObjLocation(centerX, centerY);
 	}
 
-	_cardToObjLocation(card) {
+	_cardToObjLocation(card: CardInfo) {
 
 		if (card.isNexus) {
 			return { location: LocationType.Nexus };
@@ -74,7 +79,7 @@ module.exports = class GameInfo {
 		return this._posToObjLocation(centerX, centerY);
 	}
 
-	_posToObjLocation(x, y) {
+	_posToObjLocation(x: number, y: number) {
 		const relativeX = x / this.screenWidth;
 		const relativeY = y / this.screenHeight;
 
@@ -87,7 +92,7 @@ module.exports = class GameInfo {
 		return location;
 	}
 
-	_handleInitFrame(time, json) {
+	_handleInitFrame(time: number, json: LoRFrame) {
 
 		this._handleGenericEvents(time, json);
 
@@ -101,13 +106,13 @@ module.exports = class GameInfo {
 		// Do init stuff here (which I don't have right now)
 	}
 
-	_handleDrawFrame(time, json) {
+	_handleDrawFrame(time: number, json: LoRFrame) {
 
 		this._handleGenericEvents(time, json);
 		const player = this.you; // Ignore opponent for this phase.
 
 		switch(this.subState) {
-			case DrawPhase.WaitForAppear: {
+			case DrawPhaseSubstate.WaitForAppear: {
 				let cardCount = 0;
 				for (const rect of json.Rectangles) {
 					if (rect.LocalPlayer == false)
@@ -126,13 +131,13 @@ module.exports = class GameInfo {
 				}
 
 				if (cardCount == config.drawCount) {
-					this.subState = DrawPhase.WaitForResolve;
+					this.subState = DrawPhaseSubstate.WaitForResolve;
 					debug.log(`Draw Phase: We've seen all ${config.drawCount} cards, waiting for replacements and for them to move to the hand.`);
 				}
 				break;
 			}
 
-			case DrawPhase.WaitForResolve: {
+			case DrawPhaseSubstate.WaitForResolve: {
 
 				const drawnCards = player.drawnCards.cardArray;
 				const foundCards = {};
@@ -207,7 +212,7 @@ module.exports = class GameInfo {
 		}
 	}
 
-	_handleGenericEvents(time, json) {
+	_handleGenericEvents(time: number, json: LoRFrame) {
 		this.screenWidth = json.Screen.ScreenWidth;
 		this.screenHeight = json.Screen.ScreenHeight;
 
@@ -255,14 +260,14 @@ module.exports = class GameInfo {
 		}
 	}
 
-	_setToNextGameState(time, json) {
+	_setToNextGameState(time: number, json: LoRFrame) {
 
 		const oldState = this.gameState;
 
 		switch (this.gameState) {
 			case GameState.Init:
 				this.gameState = GameState.Draw;
-				this.subState = DrawPhase.WaitForAppear;
+				this.subState = DrawPhaseSubstate.WaitForAppear;
 				break;
 
 			case GameState.Draw:
@@ -272,7 +277,7 @@ module.exports = class GameInfo {
 				break;
 		}
 
-		debug.log(`Switched from state ${GameStateNames[oldState]} to ${GameStateNames[this.gameState]} (Substate: ${this.subState}) at ${time}`);
+		debug.log(`Switched from state ${GameState[oldState]} to ${GameState[this.gameState]} (Substate: ${this.subState}) at ${time}`);
 	}
 	
 	asJsonString() {

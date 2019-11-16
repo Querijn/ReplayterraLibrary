@@ -1,6 +1,21 @@
-module.exports = class CardInfo {
+import LoRRect from "./LegendsOfRuneterra/Rect";
 
-	constructor(rect) {
+export default class CardInfo {
+
+	public id: string;
+	public code: string;
+	public isNexus: false;
+	
+	private _prevX: number;
+	private _prevY: number;
+	
+	private _x: number;
+	private _y: number;
+	
+	public width: number;
+	public height: number;
+
+	constructor(rect: LoRRect) {
 		this.id = rect.CardID;
 		this.code = rect.CardCode;
 		this.isNexus = false;
@@ -12,7 +27,7 @@ module.exports = class CardInfo {
 		this.height = rect.Height;
 	}
 
-	setPos(x, y) {
+	setPos(x: number, y: number) {
 		this._prevX = this._x;
 		this._prevY = this._y;
 
@@ -20,7 +35,7 @@ module.exports = class CardInfo {
 		this._y = y;
 	}
 	
-	resetPos(x, y) {
+	resetPos(x: number, y: number) {
 		this._prevX = this._x;
 		this._prevY = this._y;
 	}

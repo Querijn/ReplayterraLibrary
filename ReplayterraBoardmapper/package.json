@@ -2,15 +2,18 @@
 	"name": "replayterra_boardmapper",
 	"version": "1.0.0",
 	"private": true,
-	"main": "src/index.js",
+	"scripts": {
+		"compile": "./node_modules/.bin/node-gyp.cmd -j 8 rebuild && tsc -p .",
+		"start": "npm run compile && node ./dist/test.js"
+	},
 	"dependencies": {
 		"bindings": "~1.2.1",
 		"node-addon-api": "^1.7.1",
-		"node-gyp": "^6.0.1"
+		"node-gyp": "^6.0.1",
+		"typescript": "^3.7.2"
 	},
-	"scripts": {
-		"build": "/node_modules/.bin/node-gyp.cmd -j 8 rebuild",
-		"start": "npm run build && npm run start"
+	"devDependencies": {
+		"@types/node": "^8.0.22"
 	},
 	"gypfile": true
 }

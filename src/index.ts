@@ -1,6 +1,6 @@
-const GameInfo = require("./game_info");
-const fetch = require("node-fetch");
-const debug = require("./debug");
+import GameInfo from "./game_info";
+import fetch from "node-fetch";
+import debug from "./debug";
 
 const replayApiUrl = `http://lor.stelar7.no/api`;
 const testReplay = `1SZd5UVI7Cnsd4rtNshcPGLjK5F92WAYQX0eTyMDbgzEhmubDST34BGO8x7KfBL6UO3cXEwk0yllNiawjoHIrVQn8PqHRkZvpMt9`;
@@ -43,7 +43,7 @@ async function convertReplay(replayUuid) {
 }
 
 async function test() {
-	const fs = require("fs");
+	import fs from "fs";
 	if (!fs.existsSync("replays")) fs.mkdirSync("replays");
 	fs.writeFileSync(`replays/${testReplay}.json`, convertReplay(testReplay));
 }

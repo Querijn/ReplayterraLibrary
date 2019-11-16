@@ -1,16 +1,16 @@
 {
   "name": "replayterra",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A library to interpret card position stream as gameboard state for Legends of Runeterra",
-  "main": "src/index.js",
   "scripts": {
-    "test": "node src/index.js"
+    "compile": "tsc -p .",
+    "start": "tsc -p . && node ./dist/index.js",
   },
+  "author": "Querijn Heijmans <querijn@irule.at>",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Querijn/ReplayterraLibrary.git"
   },
-  "author": "Querijn Heijmans",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/Querijn/ReplayterraLibrary/issues"
@@ -18,6 +18,7 @@
   "homepage": "https://github.com/Querijn/ReplayterraLibrary#readme",
   "dependencies": {
     "node-fetch": "^2.6.0",
-    "replayterra_boardmapper": "file:ReplayterraBoardmapper"
+    "replayterra_boardmapper": "file:ReplayterraBoardmapper",
+    "typescript": "^3.7.2"
   }
 }

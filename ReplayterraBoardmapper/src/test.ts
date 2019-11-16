@@ -1,4 +1,4 @@
-const process = require('process');
+import process from 'process';
 
 let imageReader = null;
 const pluginName = '../build/Release/replayterra_boardmapper';
@@ -20,10 +20,10 @@ catch (e) {
 if (imageReader.load("assets/layer_template.png") == false) {
 	console.error("Unable to open the board mapping image");
 	process.exit(-1);
-	return;
 }
-
-console.log("Red at 2,2", imageReader.getRed(0, 0.49));
-
-console.log("End of app.");
-imageReader.unload();
+else {
+	console.log("Red at 2,2", imageReader.getRed(0, 0.49));
+	
+	console.log("End of app.");
+	imageReader.unload();
+}
