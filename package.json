@@ -17,8 +17,8 @@
   },
   "homepage": "https://github.com/Querijn/ReplayterraLibrary#readme",
   "dependencies": {
+    "jimp": "^0.8.5",
     "node-fetch": "^2.6.0",
-    "replayterra_boardmapper": "file:ReplayterraBoardmapper",
     "typescript": "^3.7.2"
   },
   "devDependencies": {

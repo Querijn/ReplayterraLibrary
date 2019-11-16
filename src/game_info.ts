@@ -1,5 +1,3 @@
-import { Boardmapper, LocationType } from "replayterra_boardmapper";
-
 import config from "./config";
 import debug from "./debug";
 
@@ -7,6 +5,7 @@ import PlayerInfo from "./player_info";
 import DrawPhaseInfo from "./draw_phase_info";
 import CardInfo from "./card_info";
 
+import { Boardmapper, LocationType } from "./board_mapper";
 import { GameState } from "./game_state";
 import CardSet from "./card_set";
 
@@ -38,15 +37,20 @@ export default class GameInfo {
 	private drawPhase = new DrawPhaseInfo();
 	public allCards = new CardSet(null);
 
+	private mapperLoadPromise: Promise<void> | null;
+
 	constructor() {
-		Boardmapper.load(); // Prepare the source board image layout
-
-		debug.log(`The BoardMapper was built on ${Boardmapper.getBuildTime()}`); // I have the feeling it does not build sometimes.
-
+		this.mapperLoadPromise = Boardmapper.load();
 		this.drawPhase = new DrawPhaseInfo();
 	}
 
-	feedFrame(time: number, json: LoRFrame) {
+	async feedFrame(time: number, json: LoRFrame) {
+
+		// Ensure mapper load
+		if (this.mapperLoadPromise) {
+			await this.mapperLoadPromise;
+			this.mapperLoadPromise = null;
+		}
 
 		switch (this.gameState) {
 			case GameState.Init:
@@ -83,7 +87,7 @@ export default class GameInfo {
 		const location = Boardmapper.getObjectLocation(relativeX, relativeY, isDrawPhase);
 
 		if (location == LocationType.Unknown)
-			throw new Error(`Could not determine location! (${relativeX}, ${relativeY})`);
+			throw new Error(`Could not determine location! (${x}, ${y} -> ${relativeX}, ${relativeY})`);
 
 		return location;
 	}
