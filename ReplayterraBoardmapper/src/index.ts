@@ -2,7 +2,7 @@
 const pluginName = '../build/Release/replayterra_boardmapper';
 const pluginDebugName = '../build/Debug/replayterra_boardmapper';
 
-enum LocationType {
+export enum LocationType {
 	Unknown = 0,
 	Draw = 1,
 	Hand = 2,
@@ -14,9 +14,7 @@ enum LocationType {
 import process from 'process';
 let imageReader: any = null;
 
-export default {
-
-    LocationType: LocationType,
+export const Boardmapper = {
 
     getBuildTime: function () { return imageReader.getBuildTime(); },
 

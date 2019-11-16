@@ -1,4 +1,4 @@
-import Boardmapper from "replayterra_boardmapper";
+import { Boardmapper, LocationType } from "replayterra_boardmapper";
 
 import config from "./config";
 import debug from "./debug";
@@ -58,16 +58,16 @@ export default class GameInfo {
 		}
 	}
 
-	_rectToObjLocation(rect: LoRRect): Boardmapper.LocationType {
+	_rectToObjLocation(rect: LoRRect): LocationType {
 		const centerX = rect.TopLeftX + rect.Width / 2;
 		const centerY = rect.TopLeftY - rect.Height / 2; // This has to be negative because of the y coordinate inversion
 		return this._posToObjLocation(centerX, centerY);
 	}
 
-	_cardToObjLocation(card: CardInfo): Boardmapper.LocationType {
+	_cardToObjLocation(card: CardInfo): LocationType {
 
 		if (card.isNexus) {
-			return { location: Boardmapper.LocationType.Nexus };
+			return LocationType.Nexus;
 		}
 
 		const centerX = card.x + card.width / 2;
@@ -75,14 +75,14 @@ export default class GameInfo {
 		return this._posToObjLocation(centerX, centerY);
 	}
 
-	_posToObjLocation(x: number, y: number): Boardmapper.LocationType {
+	_posToObjLocation(x: number, y: number): LocationType {
 		const relativeX = x / this.screenWidth;
 		const relativeY = y / this.screenHeight;
 
 		const isDrawPhase = this.gameState == GameState.Draw;
 		const location = Boardmapper.getObjectLocation(relativeX, relativeY, isDrawPhase);
 
-		if (location == Boardmapper.LocationType.Unknown)
+		if (location == LocationType.Unknown)
 			throw new Error(`Could not determine location! (${relativeX}, ${relativeY})`);
 
 		return location;
@@ -153,7 +153,7 @@ export default class GameInfo {
 							continue;
 
 						// This is our end condition of this phase. 
-						if (objectLocation == Boardmapper.LocationType.Hand) {
+						if (objectLocation == LocationType.Hand) {
 
 							debugger;
 							if (this.drawPhase.receivedCards.length !== this.drawPhase.replacedCards.length)
@@ -176,7 +176,7 @@ export default class GameInfo {
 					}
 					
 					// Ignore nexuses
-					if (objectLocation == Boardmapper.LocationType.Nexus)
+					if (objectLocation == LocationType.Nexus)
 						continue;
 
 					// A new card appeared.
@@ -237,7 +237,7 @@ export default class GameInfo {
 			
 			const objectLocation = this._rectToObjLocation(rect);
 			switch (objectLocation) {
-				case Boardmapper.LocationType.Nexus:
+				case LocationType.Nexus:
 					if (player.nexus !== "0") // Nexus is initialised, skip
 						break;
 						

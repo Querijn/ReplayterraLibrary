@@ -14,12 +14,11 @@ var LocationType;
     LocationType[LocationType["Bench"] = 3] = "Bench";
     LocationType[LocationType["Field"] = 4] = "Field";
     LocationType[LocationType["Nexus"] = 5] = "Nexus";
-})(LocationType || (LocationType = {}));
+})(LocationType = exports.LocationType || (exports.LocationType = {}));
 ;
 const process_1 = __importDefault(require("process"));
 let imageReader = null;
-exports.default = {
-    LocationType: LocationType,
+exports.Boardmapper = {
     getBuildTime: function () { return imageReader.getBuildTime(); },
     getObjectLocation: function (x, y, isDrawPhase) {
         let result;
