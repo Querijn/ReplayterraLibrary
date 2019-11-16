@@ -158,8 +158,6 @@ export default class GameInfo {
 
 						// This is our end condition of this phase. 
 						if (objectLocation == LocationType.Hand) {
-
-							debugger;
 							if (this.drawPhase.receivedCards.length !== this.drawPhase.replacedCards.length)
 								throw new Error("How come we're moving towards the hand while we don't have all our cards yet?");
 
