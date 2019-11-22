@@ -1,6 +1,6 @@
 # ReplayterraLib
 
-This is the source code for the library portion of [Replayterra](http://lor.stelar7.no). For the source code of the [website](), [tracker app]() and [replay view]() please see the appropriate repositories.
+This is the source code for the library portion of [Replayterra](http://lor.stelar7.no). For the source code of the [tracker app](https://github.com/stelar7/challenge2019) and [replay view](https://github.com/Querijn/ReplayterraView) please see the appropriate repositories.
  
 ReplayterraLib is a library that converts a raw stream of rectangle positions from the Legends of Runeterra API into a set of events that more accurately describe what happens during a game. While we have implemented a replay system as an example of how such a library can be used, we think that the community will be able to find plenty of other uses for such a library.
 
