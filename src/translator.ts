@@ -30,7 +30,7 @@ type Event = {
 
 const FIGHT_ACTIONS = ["play_survive", "enemy_play_survive", "play_died", "enemy_play_died"];
 const SWALLOW_PRE_ACTIONS = ["place_spell", "enemy_place_spell", "spell_remove", "enemy_spell_remove"];
-const SWALLOW_POST_ACTIONS = ["draw"];
+const SWALLOW_POST_ACTIONS = ["draw", "discard"];
 
 /**
  * Similar to the RawEventTranslator, but does a final pass on the events and rectifies
@@ -54,7 +54,7 @@ export default class EventTranslator extends RawEventTranslator {
     public finalize(): Event[] {
         this.done = true;
 
-        const actions = this.getEvents();
+        let actions = this.getEvents();
 
         const ret: Event[] = [];
         const initialMulliganCards = [];
@@ -67,19 +67,44 @@ export default class EventTranslator extends RawEventTranslator {
         for (let i = 0; i < actions.length; i++) {
             const action = actions[i];
 
-            if (action.type === "play_died" || action.type === "place_died") {
+            if (action.type === "enemy_play_died" || action.type === "play_died" || action.type === "place_died") {
                 for (let j = i + 1; j < actions.length && j < i + 3; j++) {
                     const nextAction = actions[j];
 
-                    if (nextAction.type === "play" && action.id === nextAction.id) {
+                    if ((nextAction.type === "play" || nextAction.type === "enemy_play") && action.id === nextAction.id) {
                         actions.splice(actions.indexOf(action), 1);
-                        if (action.type === "play_died") actions.splice(actions.indexOf(nextAction), 1);
+                        if (action.type === "play_died" || action.type === "enemy_play_died") actions.splice(actions.indexOf(nextAction), 1);
                         i--; // i now refers to the next element, so undo the next increment
                         break;
                     }
                 }
             }
         }
+
+        // fix up discards
+        const newActions = [];
+
+        for (let i = 0; i < actions.length; i++) {
+            const action = actions[i];
+
+            // Filter out invalid places
+            if (action.type === "enemy_place_died") {
+                // If this action comes back later, ignore it. Only track cards that never come back.
+                if (actions.slice(i + 1).some(x => (<any>x).id === action.id)) continue;
+            }
+
+            // Filter out invalid discards
+            if (action.type === "discard") {
+                // If this action comes back later, ignore it. Only track cards that never come back.
+                if (actions.slice(i + 1).some(x => (<any>x).id === action.id && (<any>x).code === action.code)) continue;
+            }
+
+            if (action.type === "dediscard") continue;
+
+            newActions.push(action);
+        }
+
+        actions = newActions;
 
         for (let i = 0; i < actions.length; i++) {
             const action = actions[i];
@@ -107,21 +132,6 @@ export default class EventTranslator extends RawEventTranslator {
 
                 continue;
             }
-
-            // Filter out invalid places
-            if (action.type === "enemy_place_died") {
-                // If this action comes back later, ignore it. Only track cards that never come back.
-                if (actions.slice(i + 1).some(x => (<any>x).id === action.id)) continue;
-            }
-
-            // Filter out invalid discards
-            if (action.type === "discard") {
-                // If this action comes back later, ignore it. Only track cards that never come back.
-                if (actions.slice(i + 1).some(x => (<any>x).id === action.id && (<any>x).code === action.code)) continue;
-            }
-
-            // Filter out dediscards entirely.
-            if (action.type === "dediscard") continue;
 
             // Keep track of cards in fighting area
             if (action.type === "play") {
@@ -209,7 +219,6 @@ export default class EventTranslator extends RawEventTranslator {
                     matchups
                 });
 
-                // and draw events to after the fight
                 ret.push(...<any>postSwallowed);
 
                 cardsOnOurBoard = [];

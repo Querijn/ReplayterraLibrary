@@ -127,7 +127,7 @@ export default class RawEventTranslator {
             this.ourCards.add(card.CardID); // in case this spawned from a card
             this.events.push({ type: "place", code: card.CardCode, id: card.CardID });
             this.ourPlayedCards.add(card.CardID);
-        } else if (Math.abs(card.InitialY - 627) < 40 && !this.ourFightingCards.has(card.CardID)) { // played a card
+        } else if (Math.abs(card.InitialY - 627) < 40 && card.Width > card.Height && !this.ourFightingCards.has(card.CardID)) { // played a card
             this.ourPlayedCards.add(card.CardID); // in case this spawned from a card
             this.ourCards.add(card.CardID); // in case this spawned from a card
             this.events.push({ type: "play", code: card.CardCode, id: card.CardID, x: card.TopLeftX });
@@ -153,11 +153,10 @@ export default class RawEventTranslator {
         if (card.TopLeftY < 110 && !this.enemyCards.has(card.CardID)) { // enemy plays a card
             this.events.push({ type: "enemy_place", code: card.CardCode, id: card.CardID });
             this.enemyCards.add(card.CardID);
-        } else if (Math.abs(card.InitialY - 262) < 40 && !this.enemyFightingCards.has(card.CardID)) { // enemy moves a card to attack
+        } else if (Math.abs(card.TopLeftY - 262) < 40 && card.Width > card.Height && !this.enemyFightingCards.has(card.CardID)) { // enemy moves a card to attack
             this.enemyCards.add(card.CardID); // in case it came from a card
             this.events.push({ type: "enemy_play", code: card.CardCode, id: card.CardID, x: card.TopLeftX });
             this.enemyFightingCards.add(card.CardID);
-            card.InitialY = -1000;
         } else if (Math.abs(card.TopLeftY - 99) < 30 && this.enemyFightingCards.has(card.CardID)) { // enemy card survived
             this.events.push({ type: "enemy_play_survive", code: card.CardCode, id: card.CardID });
             this.enemyFightingCards.delete(card.CardID);
