@@ -1,16 +1,16 @@
 {
-  "compilerOptions": {
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "alwaysStrict": true,
-    "outDir": "dist",
-    "module": "commonjs",
-    "target": "es2017",
-    "declaration": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "sourceMap": true
-  },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules"]
+    "compilerOptions": {
+        "noImplicitAny": true,
+        "strictNullChecks": true,
+        "alwaysStrict": true,
+        "outDir": "dist",
+        "module": "commonjs",
+        "target": "esnext",
+        "resolveJsonModule": true,
+        "lib": ["esnext", "dom"]
+    },
+    "include": [
+        "src/**/*"
+    ],
+    "exclude": ["node_modules"]
 }
