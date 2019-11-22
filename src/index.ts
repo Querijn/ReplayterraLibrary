@@ -3,7 +3,7 @@ import EventTranslator from "./translator";
 import { LORApiFrame } from "./types";
 
 // Step 0: Get a replay.
-const replay: LORApiFrame[] = require("../replay.json");
+const replay: LORApiFrame[] = require(process.argv[2]);
 
 // Step 1: Rectify API frames. This is required.
 replay.forEach(rectifyAPIFrame);
